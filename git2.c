@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "libgit2/include/git2.h"
 
@@ -22,25 +23,58 @@ int main (int argc, char** argv) {
         exit(1);
     }
     */
-    int bac = 5;
-    printf("Motiejus: %d, %X\n", bac, &bac);
-
-    git_repository *repo;
-    git_repository_open(&repo, ".");
     char *hex = (char*)malloc(41*sizeof(char));
     get_master_hex(hex); // do not look what's inside
 
+    int e;
     // Start rev-list code //
+    git_repository *repo;
+    if (e = git_repository_open(&repo, ".git") != 0) {
+        printf("Error code: %d" , e);
+    }
+
+
+
+    /*
+    git_odb *odb;
+    git_odb_object *obj;
+    git_oid *oid;
+
+    unsigned char *data;
+    const char *str_type;
+    int error;
+
+    if ((e = git_odb_open(&odb, ".git/objects")) != 0) {
+        printf ("Fail on odb open: %d\n", e);
+    }
+    if (&odb == NULL) {
+        printf("odb is null!\n");
+    }
+
+    //odb = git_repository_database(repo);
+    git_oid_mkstr(&oid, "969b6084cbad1cb3f60443856b851340de30dc37");
+    error = git_odb_read(&obj, odb, oid);
+    */
 
     git_oid id;
     git_revwalk *walk;
-    git_commit *head;
-    git_commit *commit;
+    git_commit *head, *commit;
 
     git_oid_mkstr(&id, hex);
-    git_commit_lookup(&head, repo, &id);
+    printf("Raw 20 bytes: [%s]\n", (&id)->id);
 
-    git_revwalk_new(&walk, repo);
+    git_odb *odb; // fetch the object!
+    odb = git_repository_database(repo);
+
+    if (e = git_commit_lookup(&head, repo, &id) != 0) {
+        printf("Error in git commit lookup: %d\n");
+    }
+    // Get git commit message of the commit
+    char *msg = git_commit_message(head);
+    printf("Commit message: %s\n", msg); // YAY!!!
+
+
+    if (e = git_revwalk_new(&walk, repo)) printf("Fail: %d\n");
     git_revwalk_sorting(walk, GIT_SORT_TOPOLOGICAL | GIT_SORT_REVERSE);
     git_revwalk_push(walk, &id);
 
