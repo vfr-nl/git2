@@ -1,1 +1,7 @@
-Simple git cli implementation using libgit2
+Git cli implementation using libgit2
+
+The only thing that works now is:
+    git2 rev-list <idiot>
+
+It is (should be?) equivalent of:
+    git rev-list HEAD
